@@ -141,9 +141,11 @@ def modify_transaction(code):
 print modify_transaction(sys.argv[1])
 ```
 We use this k to generate a new verification code which contains the string
-"TRANSACTION:99999". The length of the new verification code must be the same
-as the original one, but notice the space is ignored during decryption,
-allowing us to replace it with another digit for a larger amount!.
+"TRANSACTION:99999". The length of the new verification code must be at most
+34 hex chars, corresponding to 17 bytes, 12 of which are taken by the
+"TRANSACTION:" prefix. Normally this would leave us with only 4 digits if the
+space was also included in the prefix, but notice the space is ignored during
+decryption, allowing us to replace it with another digit for a larger amount!.
 
 ```python
 def modify_transaction(code):
