@@ -70,27 +70,76 @@ For this, we create a valid transaction with amount 5000. The server gives a ver
 associated to this transaction. We then use the following script to bruteforce the seed k:
 
 ```python
+import sys
+
+class Randomizer:
+	def __init__(self, a, c, m, s):
+		self.__a = a
+		self.__c = c
+		self.__m = m
+		self.__x = s
+
+	def get_next(self):
+		self.__x = (self.__a*self.__x + self.__c) % self.__m
+		return self.__x
+
+	def get_a(self):
+		return self.__a 
+	def set_a(self, a):
+		self.__a = a
+
+	def get_c(self):
+		return self.__c 
+	def set_c(self, c):
+		self.__c = c
+
+	def get_m(self):
+		return self.__m 
+	def set_m(self, m):
+		self.__m = m
+
+	def get_x(self):
+		return self.__x 
+	def set_x(self, x):
+		self.__x = x
+
 def decrypt(ct, r):
-       ct = ct.decode('hex')
-       pt = ""
+	ct = ct.decode('hex')
+	pt = ""
 
-       for c in ct:
-               pt += chr(ord(c) ^ (r.get_next() % 2**7))
+	for c in ct:
+		pt += chr(ord(c) ^ (r.get_next() % 2**7))
 
-       return pt
+	return pt
+
+def encrypt(pt, r):
+	ct = ""
+
+	for c in pt:
+		ct += chr(ord(c) ^ (r.get_next() % 2**7))
+
+	ct = ct.encode('hex')
+	return ct
 
 def find_k(code):
-       r = Randomizer(1664525, 1013904223, 2**32, 0)
+	r = Randomizer(1664525, 1013904223, 2**32, 0)
 
-       for k in xrange(2**32):
-               r.set_x(k)
+	for k in xrange(2**32):
+		r.set_x(k)
 
-               if decrypt(code, r) == "TRANSACTION: 5000":
-                       return k
+		if decrypt(code, r) == "TRANSACTION: 5000":
+			return k
 
-       return None
+	return None
+
+def modify_transaction(code):
+	k = find_k(code)
+	r = Randomizer(1664525, 1013904223, 2**32, k)
+
+	return encrypt("TRANSACTION:99999", r)
+
+print modify_transaction(sys.argv[1])
 ```
-
 We use this k to generate a new verification code which contains the string
 "TRANSACTION:99999" (notice the space is also ignored, allowing a larger amount!).
 
