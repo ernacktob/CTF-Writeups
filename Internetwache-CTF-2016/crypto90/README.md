@@ -70,6 +70,15 @@ For this, we create a valid transaction with amount 5000. The server gives a ver
 associated to this transaction. We then use the following script to bruteforce the seed k:
 
 ```python
+def decrypt(ct, r):
+       ct = ct.decode('hex')
+       pt = ""
+
+       for c in ct:
+               pt += chr(ord(c) ^ (r.get_next() % 2**7))
+
+       return pt
+
 def find_k(code):
        r = Randomizer(1664525, 1013904223, 2**32, 0)
 
